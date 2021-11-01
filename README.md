@@ -1,2 +1,10 @@
 # verbose-guacamole
-Internal development code name: verbose-guacamole. No idea why, it was the suggested repo name.
+Internal development code name: verbose-guacamole.
+
+
+
+Platformer Fighter i.e. Super Smash Bros.
+
+At least 4 players.
+
+Maps are walk-off only.
