@@ -5,59 +5,197 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-
     ui->setupUi(this);
-    this->setMinimumSize(800,600); //this isn't final. We can fullscreen the game if we want.
-    this->setWindowTitle("Beetle Sumo");
 
-    main_menu = new QGraphicsScene(-400,-300,800,600); //initialize the coordinates to be like math but with weird y-axis
-    main_menu->setBackgroundBrush(Qt::black); //temp. We'll put a graphic here later.
-    view = new QGraphicsView;
-    view->setScene(main_menu); //view holds scene
-    view->setMinimumSize(810,610);
-    this->layout()->addWidget(view); //layout holds view
+    view = new QGraphicsView(this);
 
-    QGraphicsTextItem* title = new QGraphicsTextItem; //We'll make an official logo later, and this will be an image item
-    title->setPlainText("Beetle Sumo");
-    title->setDefaultTextColor(Qt::white);
-    title->setPos(-(title->boundingRect().width())/2,-(title->boundingRect().height())/2); //wacky centering method
-    main_menu->addItem(title);
+    QVBoxLayout* layout = new QVBoxLayout;
+    setLayout(layout);
 
-    //button for create game; this will also look cool *later*
-    QPushButton* createbtn = new QPushButton;
-    //createbtn->setStyleSheet("color: white; background-color: transparent");
-    createbtn->setGeometry(-150,100,100,50);
-    createbtn->setText("Create Game");
-    main_menu->addWidget(createbtn);
+    layout->addWidget(view);
+    resize(800,600);
+    view->resize(800,600);
+    view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    //button for join game
-    QPushButton* joinbtn = new QPushButton;
-    joinbtn->setGeometry(50,100,100,50);
-    joinbtn->setText("Join Game");
-    main_menu->addWidget(joinbtn);
+    title_screen = new QGraphicsScene;
+    title_screen->setBackgroundBrush(Qt::cyan);
+    title_screen->setSceneRect(-400,-300,800,600);
 
-    //if buttons are clicked, do the stuff
-    connect(createbtn,SIGNAL(clicked()),this,SLOT(create_game()));
-    connect(joinbtn,SIGNAL(clicked()),this,SLOT(join_game()));
+    QLabel* title = new QLabel;
+
+    QPixmap logo = QPixmap(":/Images/Logo.png");
+    logo = logo.scaledToWidth(500);
+    title->setPixmap(logo);
+
+    title->setGeometry(
+                -logo.width()/2,
+                -logo.height()/2-100,
+                logo.width(),
+                logo.height());
+
+
+    title->setAttribute(Qt::WA_TranslucentBackground);
+
+    title_screen->addWidget(title);
+
+    view->setScene(title_screen);
+
+    QPushButton* cgbtn = new QPushButton;
+    QPixmap cgbtn_pix = QPixmap(":/Images/CG_Button.png").scaledToWidth(250);
+
+    cgbtn->setIconSize(cgbtn_pix.size());
+
+    cgbtn->setIcon(QIcon(cgbtn_pix));
+    QRect cgbtn_geo;
+    cgbtn_geo.setX(-cgbtn_pix.width()/2-150);
+    cgbtn_geo.setY(-cgbtn_pix.height()/2+75);
+    cgbtn_geo.setWidth(cgbtn_pix.width());
+    cgbtn_geo.setHeight(cgbtn_pix.height());
+    cgbtn->setGeometry(cgbtn_geo);
+
+    cgbtn->setAttribute(Qt::WA_TranslucentBackground);
+    cgbtn->setAttribute(Qt::WA_TransparentForMouseEvents);
+    cgbtn->setFlat(true);
+    cgbtn->setStyleSheet("QPushButton{background-color: rgba(0,0,0,0);border:none;color:rgb(255, 255, 255);}"
+                                       "QPushButton:hover{background-color: rgba(0,0,0,0);border:none;color:rgb(255, 255, 255);}"
+                                       "QPushButton:checked{background-color: rgba(0,0,0,0);border:none;color:rgb(255, 255, 255);}");
+
+    title_screen->addWidget(cgbtn);
+
+    QPushButton* jgbtn = new QPushButton;
+    QPixmap jgbtn_pix = QPixmap(":/Images/JG_Button.png").scaledToWidth(250);
+
+    jgbtn->setIconSize(jgbtn_pix.size());
+
+    jgbtn->setIcon(QIcon(jgbtn_pix));
+    QRect jgbtn_geo;
+    jgbtn_geo.setX(-jgbtn_pix.width()/2+150);
+    jgbtn_geo.setY(-jgbtn_pix.height()/2+75);
+    jgbtn_geo.setWidth(jgbtn_pix.width());
+    jgbtn_geo.setHeight(jgbtn_pix.height());
+    jgbtn->setGeometry(jgbtn_geo);
+
+    jgbtn->setAttribute(Qt::WA_TranslucentBackground);
+    jgbtn->setAttribute(Qt::WA_TransparentForMouseEvents);
+    jgbtn->setFlat(true);
+    jgbtn->setStyleSheet("QPushButton{background-color: rgba(0,0,0,0);border:none;color:rgb(255, 255, 255);}"
+                                       "QPushButton:hover{background-color: rgba(0,0,0,0);border:none;color:rgb(255, 255, 255);}"
+                                       "QPushButton:checked{background-color: rgba(0,0,0,0);border:none;color:rgb(255, 255, 255);}");
+
+    title_screen->addWidget(jgbtn);
+
+
+    connect(cgbtn,SIGNAL(clicked()),this,SLOT(create_game()));
+    connect(jgbtn,SIGNAL(clicked()),this,SLOT(join_game()));
 }
 
 void MainWindow::create_game(){
-    //uh oh. It's netcode time.
+    server = new Server(this);
+
+    client = new Client(this);
+    client->connecttoserver(server->host,server->port);
+
+    char_select_screen = new QGraphicsScene;
+
+    char_select_screen->setSceneRect(-400,-300,800,600);
+
+    char_select_screen->setBackgroundBrush(Qt::cyan);
+
+    view->setScene(char_select_screen);
+
+    QLabel* server_label = new QLabel;
+    server_label->setText("Server IP: "+server->host.toString()+"\n\rPort #: "+QString::number(server->port));
+    server_label->setGeometry(-server_label->sizeHint().width()/2,-server_label->sizeHint().height()/2,server_label->sizeHint().width(),server_label->sizeHint().height());
+    server_label->setAttribute(Qt::WA_TranslucentBackground);
+
+    char_select_screen->addWidget(server_label);
+
+    playerID_label = new QLabel;
+    playerID_label->setText("Player 0");
+    playerID_label->setGeometry(-400,-300,playerID_label->sizeHint().width(),playerID_label->sizeHint().height());
+    playerID_label->setAttribute(Qt::WA_TranslucentBackground);
+
+    char_select_screen->addWidget(playerID_label);
+
+    connect(client,SIGNAL(newDataRead()),this,SLOT(parseData()));
 }
 
 void MainWindow::join_game(){
-    //good luck, Phillip lol
+    client = new Client(this);
 
-    //actually, these slots are just setup, so it shouldn't be too terrible.
-    //the hard part will be the realtime connection maintenance.
+    jg_screen = new QGraphicsScene;
+    jg_screen->setBackgroundBrush(Qt::cyan);
+
+    view->setScene(jg_screen);
+    jg_screen->setSceneRect(-400,-300,800,600);
+
+    QLabel* ip_msg = new QLabel;
+    ip_msg->setText("Server IP: ");
+    ip_msg->setGeometry(-50-ip_msg->sizeHint().width()/2,-ip_msg->sizeHint().height()/2-20,ip_msg->sizeHint().width(),ip_msg->sizeHint().height());
+    ip_msg->setAttribute(Qt::WA_TranslucentBackground);
+
+    ip_prompt = new QLineEdit;
+    ip_prompt->setGeometry(50-ip_prompt->sizeHint().width()/2,-ip_prompt->sizeHint().height()/2-20,ip_prompt->sizeHint().width(),ip_prompt->sizeHint().height());
+
+    QLabel* port_msg = new QLabel;
+    port_msg->setText("Port #: ");
+    port_msg->setGeometry(-50-port_msg->sizeHint().width()/2,-port_msg->sizeHint().height()/2+20,port_msg->sizeHint().width(),port_msg->sizeHint().height());
+    port_msg->setAttribute(Qt::WA_TranslucentBackground);
+
+    port_prompt = new QLineEdit;
+    port_prompt->setGeometry(50-port_prompt->sizeHint().width()/2,-port_prompt->sizeHint().height()/2+20,port_prompt->sizeHint().width(),port_prompt->sizeHint().height());
+
+    jg_screen->addWidget(ip_msg);
+    jg_screen->addWidget(ip_prompt);
+
+    jg_screen->addWidget(port_msg);
+    jg_screen->addWidget(port_prompt);
+
+    QPushButton* connectbtn = new QPushButton;
+    connectbtn->setText("Connect");
+
+    connectbtn->setGeometry(100-connectbtn->sizeHint().width()/2,-connectbtn->sizeHint().height()/2+100,connectbtn->sizeHint().width(),connectbtn->sizeHint().height());
+
+    jg_screen->addWidget(connectbtn);
+
+    connect(connectbtn,SIGNAL(clicked()),this,SLOT(connectclient()));
+}
+void MainWindow::connectclient(){
+    if(client->connecttoserver(QHostAddress(ip_prompt->displayText()),quint16(port_prompt->displayText().toUInt()))){
+
+        char_select_screen = new QGraphicsScene;
+
+        char_select_screen->setSceneRect(-400,-300,800,600);
+
+        char_select_screen->setBackgroundBrush(Qt::cyan);
+
+        view->setScene(char_select_screen);
+
+        QLabel* server_label = new QLabel;
+        server_label->setText("Server IP: "+client->getHostIP().toString()+"\n\rPort #: "+QString::number(client->getPortNum()));
+        server_label->setGeometry(-server_label->sizeHint().width()/2,-server_label->sizeHint().height()/2,server_label->sizeHint().width(),server_label->sizeHint().height());
+        server_label->setAttribute(Qt::WA_TranslucentBackground);
+
+        char_select_screen->addWidget(server_label);
+
+        playerID_label = new QLabel;
+        playerID_label->setText(" Player 0");
+        playerID_label->setGeometry(-400,-300,playerID_label->sizeHint().width(),playerID_label->sizeHint().height());
+        playerID_label->setAttribute(Qt::WA_TranslucentBackground);
+
+        char_select_screen->addWidget(playerID_label);
+
+        connect(client,SIGNAL(newDataRead()),this,SLOT(parseData()));
+    }
 }
 
-//once we're able to establish a connection between players and send/receive input data,
-//we can work on gameplay mechanics. We'll work on the gameplay and the mid-match netcode
-//simultaneously since they're mutually dependent on each other. That part is gonna be an
-//all hands on deck type thing. Fun times.
-
-//I can make some UI elements over the weekend and start working on character animations then too.
+void MainWindow::parseData(){
+    if(client->data[0]=='P'){
+        playerID = client->data[1]-0x30;
+        playerID_label->setText(" Player "+QString::number(playerID));
+    }
+}
 
 MainWindow::~MainWindow()
 {
