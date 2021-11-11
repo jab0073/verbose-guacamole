@@ -5,12 +5,10 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QVBoxLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QPushButton>
 #include <QString>
 #include "server.h"
 #include "client.h"
+#include "gamescenes.h"
 
 namespace Ui {
 class MainWindow;
@@ -28,27 +26,20 @@ signals:
 public slots:
     void create_game();
     void join_game();
-
+    void char_sel_back();
+    void jg_back();
+    void options_menu();
+    void options_back();
     void connectclient();
-
     void parseData();
 private:
     Ui::MainWindow *ui;
-    Server* server;
-    Client* client;
-
-    QGraphicsView* view;
-
-    QGraphicsScene* title_screen;
-    QGraphicsScene* jg_screen;
-    QGraphicsScene* char_select_screen;
-    QGraphicsScene* stage_select_screen;
-
-    QLineEdit* ip_prompt;
-    QLineEdit* port_prompt;
-
-    QLabel* playerID_label;
-
+    Server* server = nullptr;
+    Client* client = nullptr;
+    GameScenes* sceneselect;
+    QVBoxLayout* layout;
+    QGraphicsView* view = nullptr;
+    bool userIsHost = false;
     int playerID;
 };
 
