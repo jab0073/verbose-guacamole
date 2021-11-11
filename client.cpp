@@ -6,10 +6,17 @@ Client::Client(QObject *parent) : QObject(parent)
     socket = new QTcpSocket(this);
 }
 
-bool Client::connecttoserver(QHostAddress host, quint16 port){
-
-    socket->connectToHost(host, port);
-    qDebug() << "Connecting to host: "<<host.toString()<<" "<<port;
+bool Client::connecttoserver(){
+    if (host==QHostAddress::Null){
+        qDebug() << "Host is not set";
+    }
+    else if (port==0){
+        qDebug() << "Port not set";
+    }
+    else{
+        socket->connectToHost(host, port);
+        qDebug() << "Connecting to host: "<<host.toString()<<" "<<port;
+    }
     if(socket->waitForConnected(3000)){
         qDebug() << "Connected.";
         connect(socket,SIGNAL(readyRead()),this,SLOT(readData()));
@@ -20,7 +27,17 @@ bool Client::connecttoserver(QHostAddress host, quint16 port){
         return 0;
     }
 
+    conn_timeout = new QTimer(this);
+    connect(conn_timeout,&QTimer::timeout,this,&Client::timeout);
+    conn_timeout->start(3000);
 
+}
+
+Client::~Client(){
+    if(socket){
+        socket->close();
+        delete socket;
+    }
 }
 
 
@@ -31,9 +48,21 @@ void Client::readData(){
 }
 
 QHostAddress Client::getHostIP(){
-    return socket->peerAddress();
+    return host;
 }
 
 quint16 Client::getPortNum(){
-    return socket->peerPort();
+    return port;
+}
+
+void Client::setHostIp(QHostAddress adr){
+    host = adr;
+}
+
+void Client::setPortNum(quint16 portnum){
+    port = portnum;
+}
+
+void Client::timeout(){
+    socket->close();
 }

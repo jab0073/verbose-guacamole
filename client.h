@@ -6,14 +6,17 @@
 #include <QHostAddress>
 #include <QNetworkProxyFactory>
 #include <QDebug>
+#include <QTimer>
 
 class Client : public QObject
 {
     Q_OBJECT
 public:
     explicit Client(QObject *parent = nullptr);
-    bool connecttoserver(QHostAddress host, quint16 port);
-
+    ~Client();
+    bool connecttoserver();
+    void setHostIp(QHostAddress);
+    void setPortNum(quint16);
     QHostAddress getHostIP();
     quint16 getPortNum();
 
@@ -24,7 +27,12 @@ signals:
 public slots:
     void readData();
 private:
-    QTcpSocket* socket;
+    QTcpSocket* socket = nullptr;
+    QHostAddress host = QHostAddress::Null;
+    quint16 port = 0;
+    QTimer* conn_timeout = nullptr;
+private slots:
+    void timeout();
 };
 
 #endif // CLIENT_H
