@@ -6,7 +6,6 @@
 #include <QHostAddress>
 #include <QNetworkProxyFactory>
 #include <QDebug>
-#include <QTimer>
 
 class Client : public QObject
 {
@@ -30,9 +29,6 @@ private:
     QTcpSocket* socket = nullptr;
     QHostAddress host = QHostAddress::Null;
     quint16 port = 0;
-    QTimer* conn_timeout = nullptr;
-private slots:
-    void timeout();
 };
 
 #endif // CLIENT_H
