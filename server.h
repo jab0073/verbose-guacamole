@@ -8,7 +8,11 @@
 #include <QtNetwork/QNetworkInterface>
 #include <QtNetwork/QNetworkProxyFactory>
 #include <QRandomGenerator>
+#include <QTimer>
+#include <QDebug>
+#include <QString>
 #include "client.h"
+#include "definitions.h"
 
 class Server : public QObject
 {
@@ -25,12 +29,17 @@ signals:
 private slots:
     void newConnection();
     void sendData(QByteArray data, QTcpSocket* serverclient);
+    //Called on refresh timer timeout
+    void refresh_connections();
 
 private:
     QHostAddress host = QHostAddress::Null;
     quint16 port = 0;
     QTcpServer *tcpServer = nullptr;
     QList<QTcpSocket*> serverclients;
+    QTimer* conn_monitor = nullptr;
+    //Specific function to check connections only on timer timeout
+    void checkconnections();
 };
 
 #endif // SERVER_H

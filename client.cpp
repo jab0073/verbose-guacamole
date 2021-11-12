@@ -27,6 +27,9 @@ bool Client::connecttoserver(){
         return 0;
     }
 
+    conn_timeout = new QTimer(this);
+    connect(conn_timeout,&QTimer::timeout,this,&Client::timeout);
+    conn_timeout->start(3000);
 
 }
 
@@ -58,4 +61,8 @@ void Client::setHostIp(QHostAddress adr){
 
 void Client::setPortNum(quint16 portnum){
     port = portnum;
+}
+
+void Client::timeout(){
+    socket->close();
 }
